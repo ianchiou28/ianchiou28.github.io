@@ -3,6 +3,12 @@ let ytPlayer;
 let ytPlayerReady = false;
 const bgMusicState = { volume: 45 };
 
+// Load the IFrame Player API code asynchronously
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
 window.onYouTubeIframeAPIReady = function() {
     ytPlayer = new YT.Player('youtube-audio', {
         height: '1',
@@ -19,6 +25,7 @@ window.onYouTubeIframeAPIReady = function() {
             'onReady': (event) => {
                 ytPlayerReady = true;
                 event.target.setVolume(bgMusicState.volume);
+                event.target.unMute();
             }
         }
     });
@@ -318,6 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
         engineStartBtn.addEventListener('click', () => {
             // Unlock audio on intentional click
             if (ytPlayerReady && ytPlayer && ytPlayer.playVideo) {
+                ytPlayer.unMute();
                 ytPlayer.setVolume(45); // Apply volume right before playing
                 ytPlayer.playVideo();
             }
