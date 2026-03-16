@@ -1,7 +1,7 @@
 // YouTube Background Music Setup
 let ytPlayer;
 let ytPlayerReady = false;
-const bgMusicState = { volume: 45 };
+const bgMusicState = { volume: 50 };
 
 // Load the IFrame Player API code asynchronously
 var tag = document.createElement('script');
@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Unlock audio on intentional click
             if (ytPlayerReady && ytPlayer && ytPlayer.playVideo) {
                 ytPlayer.unMute();
-                ytPlayer.setVolume(45); // Apply volume right before playing
+                ytPlayer.setVolume(50); // Apply volume right before playing
                 ytPlayer.playVideo();
             }
 
