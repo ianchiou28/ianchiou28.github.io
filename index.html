@@ -33,6 +33,17 @@
 </head>
 <body class="bg-[#0a0f1d] text-[#e8e6e3] overflow-x-hidden font-serif selection:bg-white/30 overflow-hidden">
 
+    <!-- Terminal Preloader -->
+    <div id="terminal-preloader" class="fixed inset-0 z-[9999] bg-black text-[#00ff00] font-mono p-4 md:p-8 flex flex-col justify-end overflow-hidden cursor-pointer selection:bg-white/10">
+        <div class="max-w-4xl w-full mx-auto relative h-full flex flex-col justify-end pb-20 overflow-x-hidden">
+            <div id="terminal-content" class="whitespace-pre text-xs md:text-sm leading-relaxed opacity-90 drop-shadow-[0_0_5px_rgba(0,255,0,0.5)]"></div>
+            <div id="terminal-cursor" class="w-3 h-4 bg-[#00ff00] shadow-[0_0_8px_rgba(0,255,0,0.8)] animate-pulse mt-1 hidden"></div>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="terminal-click-prompt">
+            <span class="text-white/70 border border-white/30 px-6 py-3 rounded-md uppercase tracking-widest text-xs animate-bounce bg-black/50 backdrop-blur-sm">Click to Initialize Sequence</span>
+        </div>
+    </div>
+
     <!-- HUD / Navigation -->
     <nav class="fixed top-0 left-0 w-full z-[1000] p-6 flex justify-between items-center pointer-events-none">
         <div class="font-display font-bold text-xl tracking-widest uppercase opacity-80">Ian Chiou</div>
@@ -102,9 +113,6 @@
                 <h2 class="text-xl md:text-2xl opacity-80 mb-12 font-serif italic text-white/80">
                     “我已学会了流浪，也学会了在数字世界的大地上飞行。”
                 </h2>
-                <button id="engine-start-btn" class="uppercase tracking-[0.3em] text-xs opacity-80 animate-pulse border border-white/40 inline-block px-8 py-4 rounded-full relative z-20 hover:bg-white hover:text-black hover:scale-105 transition-all duration-500 cursor-pointer">
-                    点击启动引擎 / Click to Start Engine
-                </button>
             </div>
         </section>
 

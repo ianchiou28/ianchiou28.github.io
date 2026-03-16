@@ -319,57 +319,151 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fade in/out clouds when in competitions section
 
-    // Engine Start & Audio Unlock logic
-    const engineStartBtn = document.getElementById('engine-start-btn');
-    if (engineStartBtn) {
-        engineStartBtn.addEventListener('click', () => {
+    // Terminal Entrance Animation & Audio Unlock logic
+    const terminalPreloader = document.getElementById('terminal-preloader');
+    const terminalContent = document.getElementById('terminal-content');
+    const terminalPrompt = document.getElementById('terminal-click-prompt');
+    const terminalCursor = document.getElementById('terminal-cursor');
+
+    if (terminalPreloader) {
+        let terminalStarted = false;
+        terminalPreloader.addEventListener('click', () => {
+            if (terminalStarted) return;
+            terminalStarted = true;
+
             // Unlock audio on intentional click
             if (ytPlayerReady && ytPlayer && ytPlayer.playVideo) {
                 ytPlayer.unMute();
-                ytPlayer.setVolume(50); // Apply volume right before playing
+                ytPlayer.setVolume(50);
                 ytPlayer.playVideo();
             }
 
-            // IMMEDIATELY unlock scroll so it feels responsive
-            document.body.classList.remove('overflow-hidden');
-            document.documentElement.classList.remove('overflow-hidden'); // Safeguard for some desktop browsers
-            
-            // CRITICAL: Refresh GSAP ScrollTrigger calculations. 
-            // Because the body was hidden, the page height was zero/small. 
-            // Now that scroll is restored, GSAP needs to re-measure all trigger points.
-            setTimeout(() => {
-                ScrollTrigger.refresh();
-            }, 50);
+            // Hide prompts & show cursor
+            if (terminalPrompt) gsap.to(terminalPrompt, {opacity: 0, duration: 0.3});
+            if (terminalCursor) terminalCursor.classList.remove('hidden');
 
-            // Animate button away
-            gsap.to(engineStartBtn, {
-                scale: 1.5, opacity: 0, duration: 0.8, ease: "power2.out",
-                onComplete: () => {
-                    engineStartBtn.style.display = 'none';
-                    // Add a hint text replacing the button
-                    const hintSpan = document.createElement('div');
-                    hintSpan.className = 'uppercase tracking-[0.3em] text-xs opacity-50 mt-4';
-                    hintSpan.innerText = '向下滚动 / Scroll to Fly';
-                    engineStartBtn.parentNode.appendChild(hintSpan);
-                }
-            });
-            // Propeller spin up animation
-            gsap.to(["#prop-blade-1", "#prop-blade-2", "#propeller-blur"], {
-                duration: 2, 
-                ease: "power2.in", 
-                rotation: 3600, 
-                svgOrigin: "180 45", // Use GSAP's robust SVG absolute origin
-                onComplete: () => {
-                    // Seamlessly hand over to infinite GSAP animation
+            const lines = [
+                "root@ian-chiou:~# ./init_flight_system.sh --override",
+                "[INFO] Booting system core...",
+                "[INFO] Mounting virtual drives........ [DONE]",
+                "[INFO] Initializing memory banks...... [DONE]",
+                "[INFO] Loading telemetry data......... [DONE]",
+                " ",
+                "       > Checking environmental variables...",
+                "       > Wind speed: 12 knots",
+                "       > Visibility: Clear",
+                "       > Gravity: Nominal",
+                " ",
+                "[INFO] Engaging primary thrusters..... [DONE]",
+                "[INFO] Calibrating altimeter.......... [DONE]",
+                "[INFO] Establishing satellite uplink.. [DONE]",
+                "[WARN] Minor turbulence detected...... [IGNORED]",
+                "[INFO] Deploying aerodynamic surfaces.",
+                " ",
+                "Rendering structural schematic:",
+                " ",
+                "                              |",
+                "                        --====|====--",
+                "                              |",
+                "                          .-'---'-.",
+                "                        .'_________'.",
+                "                       /_/_|__|__|_\\_\\",
+                "                      ;'-._       _.-';",
+                " ,--------------------|      .-.      |--------------------,",
+                "  ``''''--..__  ___   ;       '       ;   ___  __..--''''``",
+                "              '-// \\.._\\             /_..// \\-'",
+                "                \\_//     '._     _.'     \\\\_/",
+                "                `'`          ---          `'`",
+                " ",
+                "System diagnostics nominal.",
+                "Flight sequence successfully initialized.",
+                "Clear for takeoff."
+            ];
+
+            let lineIndex = 0;
+            let charIndex = 0;
+            let currentText = "";
+
+            function typeWriter() {
+                if (lineIndex < lines.length) {
+                    if (charIndex < lines[lineIndex].length) {
+                        currentText += lines[lineIndex].charAt(charIndex);
+                        terminalContent.innerText = currentText;
+                        charIndex++;
+                        
+                        // Very fast typing speed
+                        let delay = Math.random() * 4 + 2; 
+                        if (lines[lineIndex].charAt(charIndex - 1) === '.') delay = 20;
+                        
+                        // If it's rendering the ascii art, print characters almost instantly
+                        if (lineIndex >= 18 && lineIndex <= 30) {
+                            delay = 1;
+                        }
+                        
+                        setTimeout(typeWriter, delay);
+                    } else {
+                        currentText += "\n";
+                        terminalContent.innerText = currentText;
+                        lineIndex++;
+                        charIndex = 0;
+                        
+                        // Pauses between lines
+                        let lineDelay = 20;
+                        if (lineIndex < lines.length && lines[lineIndex].startsWith("[INFO]")) lineDelay = 70;
+                        if (lineIndex < lines.length && lines[lineIndex].startsWith("[WARN]")) lineDelay = 150;
+                        if (lineIndex === 1 || lineIndex === 6 || lineIndex === 11) lineDelay = 200;
+                        if (lineIndex >= 18 && lineIndex <= 30) lineDelay = 10; // fast ascii render
+                        
+                        setTimeout(typeWriter, lineDelay);
+                    }
+                } else {
+                    // Finished typing
+                    if (terminalCursor) terminalCursor.classList.add('hidden');
+                    
+                    // Propeller spin up animation
                     gsap.to(["#prop-blade-1", "#prop-blade-2", "#propeller-blur"], {
-                        duration: 0.1,
-                        rotation: "+=360",
-                        ease: "none",
-                        repeat: -1,
-                        svgOrigin: "180 45"
+                        duration: 2, 
+                        ease: "power2.in", 
+                        rotation: 3600, 
+                        svgOrigin: "180 45",
+                        onComplete: () => {
+                            gsap.to(["#prop-blade-1", "#prop-blade-2", "#propeller-blur"], {
+                                duration: 0.1, rotation: "+=360", ease: "none",
+                                repeat: -1, svgOrigin: "180 45"
+                            });
+                        }
                     });
+
+                    setTimeout(() => {
+                        // Fade away effect
+                        gsap.to(terminalPreloader, {
+                            scale: 1.05, opacity: 0, duration: 1.2, ease: "power2.inOut",
+                            onComplete: () => {
+                                terminalPreloader.style.display = "none";
+                                // IMMEDIATELY unlock scroll
+                                document.body.classList.remove('overflow-hidden');
+                                document.documentElement.classList.remove('overflow-hidden');
+                                
+                                // Insert the hint text into the takeoff section
+                                const takeoffSection = document.querySelector('#takeoff .text-center');
+                                if (takeoffSection) {
+                                    const hintSpan = document.createElement('div');
+                                    hintSpan.className = 'uppercase tracking-[0.3em] text-xs opacity-50 mt-4 animate-bounce';
+                                    hintSpan.innerText = '向下滚动 / Scroll to Fly';
+                                    takeoffSection.appendChild(hintSpan);
+                                }
+
+                                // Refresh ScrollTrigger
+                                setTimeout(() => {
+                                    ScrollTrigger.refresh();
+                                }, 50);
+                            }
+                        });
+                    }, 800);
                 }
-            });
+            }
+            
+            setTimeout(typeWriter, 300);
         });
     }
 
