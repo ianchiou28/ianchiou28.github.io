@@ -45,6 +45,14 @@
     <!-- Parallax Background & Atmosphere -->
     <div id="sky-bg" class="fixed inset-0 z-0 pointer-events-none bg-[#0a0f1d]">
         <div id="stars" class="absolute inset-0"></div>
+        <!-- Parallax clouds -->
+        <div id="clouds-container" class="absolute inset-0 opacity-0"></div>
+        <!-- Lightning layer -->
+        <div id="lightning-container" class="absolute inset-0 pointer-events-none z-[50]"></div>
+        <!-- Rain Audio -->
+        <audio id="rain-audio" loop preload="auto" autoplay>
+            <source src="https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg" type="audio/ogg">
+        </audio>
     </div>
 
     <!-- The Airplane (Vega Gull style biplane) -->
@@ -104,9 +112,9 @@
         <section id="projects" class="py-32 relative">
             <h2 class="font-display text-4xl text-center mb-32 opacity-50 tracking-widest">I. 巡航记录 <span class="block text-sm font-sans mt-4 opacity-70">FLIGHT LOG</span></h2>
             
-            <div class="max-w-7xl mx-auto relative min-h-[250vh]">
+            <div class="max-w-7xl mx-auto relative min-h-[350vh]">
                 <!-- Project 1 -->
-                <div class="waypoint absolute top-[10%] right-[10%] md:right-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
+                <div class="waypoint absolute top-[8%] right-[10%] md:right-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
                     <div class="font-sans text-xs uppercase tracking-widest opacity-50 mb-3 flex items-center gap-2">
                         <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Waypoint Alpha
                     </div>
@@ -120,10 +128,25 @@
                     <a href="http://www.finai.org.cn/" target="_blank" class="inline-block font-sans text-xs uppercase tracking-widest border-b border-white/30 pb-1 hover:border-white transition-colors relative z-20">>> 查阅坐标记录</a>
                 </div>
 
-                <!-- Project 2 -->
-                <div class="waypoint absolute top-[50%] left-[10%] md:left-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
+                <!-- Project 2 (EchoPolis) -->
+                <div class="waypoint absolute top-[32%] left-[10%] md:left-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
                     <div class="font-sans text-xs uppercase tracking-widest opacity-50 mb-3 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span> Waypoint Bravo
+                        <span class="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></span> Waypoint Bravo
+                    </div>
+                    <h3 class="font-display text-3xl font-bold mb-3">EchoPolis</h3>
+                    <p class="font-serif text-sm opacity-80 mb-6 italic">多智能体仿真沙盘。在这里，代码构成了社会，观察独立 AI 涌现的文明火花。</p>
+                    <div class="flex flex-wrap gap-2 mb-6 font-sans text-[10px] uppercase tracking-wider">
+                        <span class="px-2 py-1 bg-white/10 rounded">Multi-Agent</span>
+                        <span class="px-2 py-1 bg-white/10 rounded">Simulation</span>
+                        <span class="px-2 py-1 bg-white/10 rounded">LLM</span>
+                    </div>
+                    <a href="https://github.com/ianchiou28/EchoPolis" target="_blank" class="inline-block font-sans text-xs uppercase tracking-widest border-b border-white/30 pb-1 hover:border-white transition-colors relative z-20">>> 接入虚拟沙盘</a>
+                </div>
+
+                <!-- Project 3 (Lingsio) -->
+                <div class="waypoint absolute top-[56%] right-[10%] md:right-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
+                    <div class="font-sans text-xs uppercase tracking-widest opacity-50 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span> Waypoint Charlie
                     </div>
                     <h3 class="font-display text-3xl font-bold mb-3">Lingsio</h3>
                     <p class="font-serif text-sm opacity-80 mb-6 italic">探索引擎机制与组织级项目架构的蓝途，将个体智慧组网成云。</p>
@@ -132,6 +155,21 @@
                         <span class="px-2 py-1 bg-white/10 rounded">Open Source</span>
                     </div>
                     <a href="https://github.com/Lingsio" target="_blank" class="inline-block font-sans text-xs uppercase tracking-widest border-b border-white/30 pb-1 hover:border-white transition-colors relative z-20">>> 驶向目标空域</a>
+                </div>
+
+                <!-- Project 4 (Wide-Research-for-Finance) -->
+                <div class="waypoint absolute top-[80%] left-[10%] md:left-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
+                    <div class="font-sans text-xs uppercase tracking-widest opacity-50 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span> Waypoint Delta
+                    </div>
+                    <h3 class="font-display text-3xl font-bold mb-3">Wide-Research</h3>
+                    <p class="font-serif text-sm opacity-80 mb-6 italic">金融研报自动化生成架构。在浩瀚数据中提炼信号，用大模型揭示市场逻辑线条。</p>
+                    <div class="flex flex-wrap gap-2 mb-6 font-sans text-[10px] uppercase tracking-wider">
+                        <span class="px-2 py-1 bg-white/10 rounded">FinTech</span>
+                        <span class="px-2 py-1 bg-white/10 rounded">AI Agents</span>
+                        <span class="px-2 py-1 bg-white/10 rounded">Research</span>
+                    </div>
+                    <a href="https://github.com/Lingsio/Wide-Research-for-Finance" target="_blank" class="inline-block font-sans text-xs uppercase tracking-widest border-b border-white/30 pb-1 hover:border-white transition-colors relative z-20">>> 调阅研究档案</a>
                 </div>
             </div>
         </section>

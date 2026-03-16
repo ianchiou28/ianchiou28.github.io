@@ -6,15 +6,33 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. Generate Stars
     const starsContainer = document.getElementById('stars');
     if (starsContainer) {
-        for(let i=0; i<150; i++) {
+        // Generate stars over a larger area to allow for parallax scrolling
+        for(let i=0; i<300; i++) {
             const star = document.createElement('div');
             star.className = 'star';
             star.style.width = Math.random() * 2 + 'px';
             star.style.height = star.style.width;
             star.style.left = Math.random() * 100 + 'vw';
-            star.style.top = Math.random() * 100 + 'vh';
+            // Extend top up to 200vh so when we scroll it up, we don't run out of stars
+            star.style.top = Math.random() * 200 + 'vh';
             star.style.animationDuration = (Math.random() * 3 + 1) + 's';
             starsContainer.appendChild(star);
+        }
+    }
+
+    // 1.5 Generate Clouds
+    const cloudsContainer = document.getElementById('clouds-container');
+    if (cloudsContainer) {
+        // Generate a few cloud layers
+        for (let i = 0; i < 15; i++) {
+            const cloud = document.createElement('div');
+            cloud.className = 'absolute bg-white/10 rounded-full mix-blend-overlay filter blur-[60px] pointer-events-none';
+            const size = Math.random() * 400 + 300; // 300 to 700px
+            cloud.style.width = size + 'px';
+            cloud.style.height = size * 0.4 + 'px';
+            cloud.style.left = (Math.random() * 120 - 10) + 'vw';
+            cloud.style.top = (Math.random() * 150 - 20) + 'vh'; // spread out
+            cloudsContainer.appendChild(cloud);
         }
     }
 
@@ -59,6 +77,31 @@ document.addEventListener("DOMContentLoaded", () => {
             .to(skyBg, { backgroundColor: "#3a2522", duration: 1 })
             // Hangar & Landing: Early dawn / Earth atmosphere
             .to(skyBg, { backgroundColor: "#1a1614", duration: 1 });
+            
+        // Parallax for stars
+        gsap.to("#stars", {
+            y: "-100vh", // Move stars up slower than scroll
+            ease: "none",
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.5
+            }
+        });
+
+        // Parallax for clouds
+        gsap.to("#clouds-container", {
+            y: "-50vh",
+            x: "10vw", // slight horizontal drift across the whole scroll
+            ease: "none",
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1
+            }
+        });
     }
 
     // 3. Airplane Animations
@@ -91,15 +134,18 @@ document.addEventListener("DOMContentLoaded", () => {
         )
         // Uniform slow flight towards the right
         .to("#plane-container", {
-            x: '50vw', // Move towards the middle-right instead of running off-screen
-            duration: 0.8,
+            x: '40vw', // Move towards the middle
+            y: '5vh',
+            duration: 0.7,
             ease: "none" // 匀速
         })
-        // Landing (descend and fly forward)
+        // Landing (descend smoothly and stay visible)
         .to("#plane-container", {
-            x: '80vw', y: '60vh', rotation: 15,
-            scale: 0.8, // Slightly smaller as it goes further away
-            duration: 0.1,
+            x: '55vw', // Keep it nicely on right side, easily visible
+            y: '25vh', // Gentle descent relative to center
+            rotation: 8, // Slight nose down
+            scale: 0.8, 
+            duration: 0.2, // Increase duration ratio to make it descend slower
             ease: "power2.inOut" // Smooth landing curve
         });
 
@@ -130,6 +176,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Turbulence Animations (Competitions)
+    const createLightningStrike = () => {
+        const container = document.getElementById('lightning-container');
+        if (!container) return;
+
+        // Random positions for the lightning
+        const startX = Math.random() * 80 + 10; // 10vw to 90vw
+        const startY = Math.random() * 50 + 10; // 10vh to 60vh
+
+        // Background glow (in-cloud lightning)
+        const glow = document.createElement('div');
+        glow.style.position = 'absolute';
+        glow.style.left = `${startX}vw`;
+        glow.style.top = `${startY}vh`;
+        glow.style.width = '60vw';
+        glow.style.height = '60vh';
+        glow.style.transform = 'translate(-50%, -50%)';
+        glow.style.background = 'radial-gradient(circle, rgba(200, 220, 255, 0.4) 0%, rgba(200, 220, 255, 0) 70%)';
+        glow.style.borderRadius = '50%';
+        container.appendChild(glow);
+
+        // Lightning bolt SVG
+        const bolt = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        bolt.setAttribute('viewBox', '0 0 100 200');
+        bolt.style.position = 'absolute';
+        bolt.style.left = `${startX + (Math.random() * 10 - 5)}vw`;
+        bolt.style.top = `${startY - 10}vh`;
+        bolt.style.width = `${Math.random() * 5 + 5}vw`;
+        bolt.style.height = `${Math.random() * 20 + 20}vh`;
+        // Generate random jagged path for the bolt
+        const points = [
+            `50,0`,
+            `${Math.random()*40+10},${Math.random()*20+30}`,
+            `${Math.random()*40+40},${Math.random()*20+50}`,
+            `${Math.random()*40+10},${Math.random()*20+100}`,
+            `${Math.random()*40+40},${Math.random()*20+120}`,
+            `${Math.random()*80+10},200`
+        ].join(' ');
+        bolt.innerHTML = `<polyline points="${points}" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="${Math.random()*2 + 1}" stroke-linejoin="miter" style="filter: drop-shadow(0 0 8px white);" />`;
+        container.appendChild(bolt);
+
+        // Animate realistic lightning flickering
+        const tl = gsap.timeline({
+            onComplete: () => {
+                glow.remove();
+                bolt.remove();
+            }
+        });
+
+        tl.to([glow, bolt], { opacity: 1, duration: 0.03 })
+          .to([glow, bolt], { opacity: 0.1, duration: 0.03 })
+          .to([glow, bolt], { opacity: 0.8, duration: 0.03 })
+          .to([glow, bolt], { opacity: 0, duration: 0.15 })
+          .to([glow, bolt], { opacity: 0.6, duration: 0.03 })
+          .to([glow, bolt], { opacity: 0, duration: 0.3 });
+    };
+
     gsap.utils.toArray('.award-cloud').forEach(cloud => {
         gsap.from(cloud, {
             scale: 0.5,
@@ -149,18 +251,68 @@ document.addEventListener("DOMContentLoaded", () => {
             start: "top 60%",
             end: "bottom 40%",
             onEnter: () => {
+                // Realistic lightning strike
+                createLightningStrike();
+                
                 gsap.to("#plane-body", {
                     y: "+=20", x: "+=5", rotation: "random(-5, 5)",
                     duration: 0.1, yoyo: true, repeat: 10 // shake effect
                 });
             },
             onEnterBack: () => {
+                // Realistic lightning strike
+                createLightningStrike();
+                
                 gsap.to("#plane-body", {
                     y: "+=20", x: "+=5", rotation: "random(-5, 5)",
                     duration: 0.1, yoyo: true, repeat: 10
                 });
             }
         });
+    });
+
+    // Fade in/out clouds when in competitions section
+    const rainAudio = document.getElementById('rain-audio');
+    
+    // Global continuous low volume ambient rain sound
+    if (rainAudio) {
+        rainAudio.volume = 0.45;
+        // Attempt to play on load if browser allows
+        setTimeout(() => {
+            let p = rainAudio.play();
+            if (p !== undefined) {
+                p.catch(() => {
+                    // Autoplay blocked, wait for first click
+                    const clickToPlay = () => {
+                        rainAudio.play();
+                        document.body.removeEventListener('click', clickToPlay);
+                    };
+                    document.body.addEventListener('click', clickToPlay);
+                });
+            }
+        }, 500);
+    }
+
+    ScrollTrigger.create({
+        trigger: "#competitions",
+        start: "top 70%",
+        end: "bottom 30%",
+        onEnter: () => {
+            gsap.to("#clouds-container", { opacity: 1, duration: 1.5 });
+            if (rainAudio) gsap.to(rainAudio, { volume: 0.7, duration: 1.5 }); // louder in storm
+        },
+        onLeave: () => {
+            gsap.to("#clouds-container", { opacity: 0, duration: 1.5 });
+            if (rainAudio) gsap.to(rainAudio, { volume: 0.45, duration: 1.5 }); // back to ambient
+        },
+        onEnterBack: () => {
+            gsap.to("#clouds-container", { opacity: 1, duration: 1.5 });
+            if (rainAudio) gsap.to(rainAudio, { volume: 0.7, duration: 1.5 }); // louder in storm
+        },
+        onLeaveBack: () => {
+            gsap.to("#clouds-container", { opacity: 0, duration: 1.5 });
+            if (rainAudio) gsap.to(rainAudio, { volume: 0.45, duration: 1.5 }); // back to ambient
+        }
     });
 
     // Fade out stars during landing/dawn
