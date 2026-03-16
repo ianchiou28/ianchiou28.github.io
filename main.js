@@ -369,7 +369,7 @@ const gameCanvas = document.getElementById('gameCanvas');
 const scoreDisplay = document.getElementById('game-score-display');
 const closeGameBtn = document.getElementById('close-game-btn');
 let gameCtx, gameAnimationId;
-let planeY = 200, planeVelocity = 0, gravity = 0.5, jump = -8;
+let planeY = 200, planeVelocity = 0, gravity = 0.3, jump = -6; // 降低了重力和跳跃力度，让控制变平滑
 let pipes = [], frameCount = 0, gameScore = 0;
 let gameState = 'start'; // 'start', 'playing', 'gameover'
 
@@ -478,16 +478,17 @@ if (planeClickZone && gameModal && gameCanvas) {
         gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
 
         // Spawn pipes
-        if (frameCount % 90 === 0) {
+        if (frameCount % 150 === 0) { // 放慢了柱子生成的频率 (原来是90)
             let gapPosition = Math.random() * 200 + 50; // Random gap starting y
-            pipes.push({ x: gameCanvas.width, topHeight: gapPosition - 60, bottomY: gapPosition + 80 });
+            // 增大了柱子的缺口间距，降低难度
+            pipes.push({ x: gameCanvas.width, topHeight: gapPosition - 80, bottomY: gapPosition + 100 });
         }
 
         // Update & Draw pipes
         gameCtx.fillStyle = '#4a5568';
         for (let i = pipes.length - 1; i >= 0; i--) {
             let p = pipes[i];
-            p.x -= 3; // speed
+            p.x -= 2; // 降低了管子移动的速度 (原来是3)
             
             // Draw top pipe
             gameCtx.fillRect(p.x, 0, 40, p.topHeight);
@@ -504,7 +505,8 @@ if (planeClickZone && gameModal && gameCanvas) {
             }
 
             // Score up
-            if (p.x === 98) {
+            // 当降速到 2 时判断点也要匹配，否则可能计不到分 (原来是 98，速度为 3 时 100 - 2，现在可以是 100)
+            if (p.x === 100 || p.x === 99) {
                 gameScore++;
                 if(scoreDisplay) scoreDisplay.innerText = `SCORE: ${gameScore}`;
             }
