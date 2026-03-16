@@ -287,13 +287,23 @@ document.addEventListener("DOMContentLoaded", () => {
             if (rainAudio) {
                 rainAudio.play().catch(e => console.log(e));
             }
-            // Animate button away and allow scrolling
+
+            // IMMEDIATELY unlock scroll so it feels responsive
+            document.body.classList.remove('overflow-hidden');
+            document.documentElement.classList.remove('overflow-hidden'); // Safeguard for some desktop browsers
+            
+            // CRITICAL: Refresh GSAP ScrollTrigger calculations. 
+            // Because the body was hidden, the page height was zero/small. 
+            // Now that scroll is restored, GSAP needs to re-measure all trigger points.
+            setTimeout(() => {
+                ScrollTrigger.refresh();
+            }, 50);
+
+            // Animate button away
             gsap.to(engineStartBtn, {
                 scale: 1.5, opacity: 0, duration: 0.8, ease: "power2.out",
                 onComplete: () => {
                     engineStartBtn.style.display = 'none';
-                    // Allow scroll
-                    document.body.classList.remove('overflow-hidden');
                     // Add a hint text replacing the button
                     const hintSpan = document.createElement('div');
                     hintSpan.className = 'uppercase tracking-[0.3em] text-xs opacity-50 mt-4';
