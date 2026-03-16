@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ian Chiou</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['Lora', 'serif'],
+                        'display': ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#0a0f1d] text-[#e8e6e3] overflow-x-hidden font-serif selection:bg-white/30">
+
+    <!-- HUD / Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-[1000] p-6 flex justify-between items-center pointer-events-none">
+        <div class="font-display font-bold text-xl tracking-widest uppercase opacity-80">Ian Chiou</div>
+        <div class="flex gap-6 font-sans text-xs uppercase tracking-widest opacity-80">
+            <span id="altimeter">ALT: 0FT</span>
+            <span id="heading">HDG: NW</span>
+        </div>
+    </nav>
+
+    <!-- Parallax Background & Atmosphere -->
+    <div id="sky-bg" class="fixed inset-0 z-0 pointer-events-none bg-[#0a0f1d]">
+        <div id="stars" class="absolute inset-0"></div>
+    </div>
+
+    <!-- The Airplane (Vega Gull style biplane) -->
+    <div id="plane-container" class="fixed top-1/2 left-1/4 z-[999] transform -translate-y-1/2 pointer-events-auto cursor-pointer" title="Click to start Night Flight: The Game!">
+        <!-- SVG Retro Plane -->
+        <svg class="w-20 h-20 md:w-28 md:h-28 drop-shadow-2xl" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="plane-body">
+                <!-- Propeller blur -->
+                <ellipse cx="185" cy="50" rx="4" ry="40" fill="rgba(255,255,255,0.2)" id="propeller-blur"/>
+                <!-- Fuselage -->
+                <path d="M30 45 Q 120 30 180 45 Q 120 65 30 55 Z" fill="#b0b5b9"/>
+                <path d="M30 45 Q 120 40 180 45 Q 120 50 30 50 Z" fill="#8e949a"/>
+                <!-- Tail wings -->
+                <path d="M40 45 L 20 25 L 30 45 Z" fill="#6b7280"/>
+                <path d="M40 50 L 20 70 L 30 50 Z" fill="#6b7280"/>
+                <!-- Pilot cabin -->
+                <path d="M120 38 Q 130 32 140 39" fill="none" stroke="#e8e6e3" stroke-width="2"/>
+                <!-- Main wings (Biplane) -->
+                <path d="M90 25 L 150 15 L 160 30 L 80 40 Z" fill="#9ca3af"/>
+                <path d="M90 75 L 150 85 L 160 70 L 80 60 Z" fill="#4b5563"/>
+                <!-- Wing struts -->
+                <line x1="100" y1="35" x2="100" y2="65" stroke="#374151" stroke-width="2"/>
+                <line x1="140" y1="25" x2="140" y2="75" stroke="#374151" stroke-width="2"/>
+                <line x1="100" y1="35" x2="140" y2="75" stroke="#374151" stroke-width="1"/>
+                <line x1="140" y1="25" x2="100" y2="65" stroke="#374151" stroke-width="1"/>
+                <!-- Propeller hub -->
+                <circle cx="180" cy="45" r="5" fill="#4b5563"/>
+                <!-- Propeller blades -->
+                <path d="M180 45 L 185 10" stroke="#d1d5db" stroke-width="3" id="prop-blade-1"/>
+                <path d="M180 45 L 185 80" stroke="#d1d5db" stroke-width="3" id="prop-blade-2"/>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div id="scroll-container" class="relative z-10 font-sans">
+        
+        <!-- SECTION: Takeoff -->
+        <section id="takeoff" class="min-h-screen flex items-center justify-center relative">
+            <!-- A subtle runway cue -->
+            <div class="absolute bottom-0 left-0 w-full h-40 flex justify-center [perspective:1000px] opacity-40 z-0">
+                <div class="w-full max-w-4xl border-x border-white/20 h-full [transform:rotateX(60deg)_scale(1.5)] border-dashed" style="mask-image: linear-gradient(to top, black, transparent); -webkit-mask-image: linear-gradient(to top, black, transparent);"></div>
+            </div>
+
+            <div class="text-center z-10 max-w-3xl px-6 pt-20">
+                <h1 class="text-6xl md:text-8xl font-display font-bold mb-8 tracking-wider">Ian Chiou</h1>
+                <h2 class="text-xl md:text-2xl opacity-80 mb-12 font-serif italic text-white/80">
+                    “我已学会了流浪，也学会了在数字世界的大地上飞行。”
+                </h2>
+                <div class="uppercase tracking-[0.3em] text-xs opacity-60 animate-pulse border border-white/20 inline-block px-6 py-3 rounded-full relative z-20 hover:bg-white/10 transition-colors">
+                    向下滚动，启动引擎 / Scroll to Start
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Flight Log (Projects) -->
+        <section id="projects" class="py-32 relative">
+            <h2 class="font-display text-4xl text-center mb-32 opacity-50 tracking-widest">I. 巡航记录 <span class="block text-sm font-sans mt-4 opacity-70">FLIGHT LOG</span></h2>
+            
+            <div class="max-w-7xl mx-auto relative min-h-[250vh]">
+                <!-- Project 1 -->
+                <div class="waypoint absolute top-[10%] right-[10%] md:right-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
+                    <div class="font-sans text-xs uppercase tracking-widest opacity-50 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Waypoint Alpha
+                    </div>
+                    <h3 class="font-display text-3xl font-bold mb-3">FinAI</h3>
+                    <p class="font-serif text-sm opacity-80 mb-6 italic">金融智能交易平台。在波动的量化之海中，算法是我们的罗盘。</p>
+                    <div class="flex flex-wrap gap-2 mb-6 font-sans text-[10px] uppercase tracking-wider">
+                        <span class="px-2 py-1 bg-white/10 rounded">Python</span>
+                        <span class="px-2 py-1 bg-white/10 rounded">LLM</span>
+                        <span class="px-2 py-1 bg-white/10 rounded">Quant</span>
+                    </div>
+                    <a href="http://www.finai.org.cn/" target="_blank" class="inline-block font-sans text-xs uppercase tracking-widest border-b border-white/30 pb-1 hover:border-white transition-colors relative z-20">>> 查阅坐标记录</a>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="waypoint absolute top-[50%] left-[10%] md:left-[20%] bg-white/[0.03] backdrop-blur-md border border-white/10 p-10 rounded-xl w-80 shadow-2xl transition-transform hover:scale-105 hover:bg-white/[0.08]">
+                    <div class="font-sans text-xs uppercase tracking-widest opacity-50 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span> Waypoint Bravo
+                    </div>
+                    <h3 class="font-display text-3xl font-bold mb-3">Lingsio</h3>
+                    <p class="font-serif text-sm opacity-80 mb-6 italic">探索引擎机制与组织级项目架构的蓝途，将个体智慧组网成云。</p>
+                    <div class="flex flex-wrap gap-2 mb-6 font-sans text-[10px] uppercase tracking-wider">
+                        <span class="px-2 py-1 bg-white/10 rounded">Architecture</span>
+                        <span class="px-2 py-1 bg-white/10 rounded">Open Source</span>
+                    </div>
+                    <a href="https://github.com/Lingsio" target="_blank" class="inline-block font-sans text-xs uppercase tracking-widest border-b border-white/30 pb-1 hover:border-white transition-colors relative z-20">>> 驶向目标空域</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Turbulence (Competitions & Challenges) -->
+        <section id="competitions" class="py-32 relative">
+            <h2 class="font-display text-4xl text-center mb-48 opacity-50 tracking-widest">II. 穿越云层 <span class="block text-sm font-sans mt-4 opacity-70">TURBULENCE</span></h2>
+            
+            <div class="max-w-5xl mx-auto flex flex-col items-center gap-[40vh] pb-32">
+                <!-- Achievement 1 -->
+                <div class="award-cloud text-center relative group">
+                    <!-- Cloud decor -->
+                    <div class="absolute inset-0 bg-white/5 blur-3xl rounded-full scale-150 -z-10 group-hover:bg-white/10 transition"></div>
+                    <div class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-[3rem] py-12 px-10 md:px-16 shadow-[0_0_50px_rgba(255,255,255,0.1)] relative">
+                        <!-- Image Container -->
+                        <div class="mb-8 rounded-2xl overflow-hidden border border-white/10 shadow-lg relative group-hover:scale-[1.02] transition-transform duration-500">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10 duration-500"></div>
+                            <img src="pictures/C3AC2C8F9017CCE855D922838428AF3F.png" alt="工行杯全国金融科技大赛" class="w-full max-w-lg mx-auto object-cover h-auto">
+                        </div>
+                        
+                        <p class="text-xs font-sans uppercase tracking-[0.3em] opacity-60 mb-4 relative z-20">遭遇气流 / Log Entry</p>
+                        <h3 class="font-display text-2xl md:text-3xl font-bold mb-4 relative z-20">工行杯全国金融科技大赛</h3>
+                        <p class="font-serif italic opacity-80 max-w-sm mx-auto relative z-20">
+                            “雷暴与数据交织，唯有最精准的模型能够穿透迷雾，看见真实的图景。”
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Achievement 2 -->
+                <div class="award-cloud text-center relative group">
+                    <div class="absolute inset-0 bg-white/5 blur-3xl rounded-full scale-150 -z-10 group-hover:bg-white/10 transition"></div>
+                    <div class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-[3rem] py-12 px-10 md:px-16 shadow-[0_0_50px_rgba(255,255,255,0.1)] relative">
+                        <!-- Image Container -->
+                        <div class="mb-8 rounded-2xl overflow-hidden border border-white/10 shadow-lg relative group-hover:scale-[1.02] transition-transform duration-500">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10 duration-500"></div>
+                            <img src="pictures/2704BE589D4EEEC08005BF45B454E0F0.png" alt="深圳国际金融科技大赛" class="w-full max-w-lg mx-auto object-cover h-auto">
+                        </div>
+
+                        <p class="text-xs font-sans uppercase tracking-[0.3em] opacity-60 mb-4 relative z-20">突围 / Log Entry</p>
+                        <h3 class="font-display text-2xl md:text-3xl font-bold mb-4 relative z-20">深圳国际金融科技大赛</h3>
+                        <p class="font-serif italic opacity-80 max-w-sm mx-auto relative z-20">
+                            “持续的航行，引擎的轰鸣就是写下每一行代码的回响。”
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Travel Journal (Leisure / Pictures) -->
+        <section id="travel-journal" class="py-32 relative">
+            <h2 class="font-display text-4xl text-center mb-32 opacity-50 tracking-widest">III. 悠然时光 <span class="block text-sm font-sans mt-4 opacity-70">FLIGHT JOURNAL</span></h2>
+            
+            <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-x-24 md:gap-y-12 items-center">
+                
+                <!-- Photo 1 -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-125 -z-10 group-hover:bg-white/10 transition-all duration-700"></div>
+                    <div class="p-3 md:p-5 bg-white/5 border border-white/20 rounded-xl shadow-2xl rotate-[-3deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-500 backdrop-blur-sm">
+                        <div class="rounded-lg overflow-hidden border border-white/10 relative">
+                            <img src="pictures/035C3812064D1C3CD3B965EE110BF2AF.png" alt="Leisure Memory 1" class="w-full aspect-[4/3] object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700">
+                        </div>
+                        <div class="mt-4 px-2 flex justify-between items-end font-sans">
+                            <p class="text-sm italic opacity-80 font-serif">记录沿途的坐标与光影</p>
+                            <span class="text-[10px] tracking-widest opacity-50 uppercase">LOG 01</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 2 -->
+                <div class="relative group md:mt-48">
+                    <div class="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-125 -z-10 group-hover:bg-white/10 transition-all duration-700"></div>
+                    <div class="p-3 md:p-5 bg-white/5 border border-white/20 rounded-xl shadow-2xl rotate-[2deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-500 backdrop-blur-sm">
+                        <div class="rounded-lg overflow-hidden border border-white/10 relative">
+                            <img src="pictures/0BB45A2C4E17FF76E7E63E6376810E17.png" alt="Leisure Memory 2" class="w-full aspect-[4/3] object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700">
+                        </div>
+                        <div class="mt-4 px-2 flex justify-between items-end font-sans">
+                            <p class="text-sm italic opacity-80 font-serif">引擎熄火后的宁静长夜</p>
+                            <span class="text-[10px] tracking-widest opacity-50 uppercase">LOG 02</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 3 -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-125 -z-10 group-hover:bg-white/10 transition-all duration-700"></div>
+                    <div class="p-3 md:p-5 bg-white/5 border border-white/20 rounded-xl shadow-2xl rotate-[1deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-500 backdrop-blur-sm">
+                        <div class="rounded-lg overflow-hidden border border-white/10 relative">
+                            <img src="pictures/398F4B76063E21DBF733B04F0B0815EB.png" alt="Leisure Memory 3" class="w-full aspect-[4/3] object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700">
+                        </div>
+                        <div class="mt-4 px-2 flex justify-between items-end font-sans">
+                            <p class="text-sm italic opacity-80 font-serif">重力之外，生活继续</p>
+                            <span class="text-[10px] tracking-widest opacity-50 uppercase">LOG 03</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 4 -->
+                <div class="relative group md:mt-48">
+                    <div class="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-125 -z-10 group-hover:bg-white/10 transition-all duration-700"></div>
+                    <div class="p-3 md:p-5 bg-white/5 border border-white/20 rounded-xl shadow-2xl rotate-[-2deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-500 backdrop-blur-sm">
+                        <div class="rounded-lg overflow-hidden border border-white/10 relative">
+                            <img src="pictures/F9074AED6FDD7AF87D3B5A38DF33CDBE.png" alt="Leisure Memory 4" class="w-full aspect-[4/3] object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700">
+                        </div>
+                        <div class="mt-4 px-2 flex justify-between items-end font-sans">
+                            <p class="text-sm italic opacity-80 font-serif">每一次触地，都能发现新风景</p>
+                            <span class="text-[10px] tracking-widest opacity-50 uppercase">LOG 04</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 5 -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-125 -z-10 group-hover:bg-white/10 transition-all duration-700"></div>
+                    <div class="p-3 md:p-5 bg-white/5 border border-white/20 rounded-xl shadow-2xl rotate-[3deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-500 backdrop-blur-sm">
+                        <div class="rounded-lg overflow-hidden border border-white/10 relative">
+                            <img src="pictures/B858FD37DE3B6585582636219B52F974.jpg" alt="Leisure Memory 5" class="w-full aspect-[4/3] object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700">
+                        </div>
+                        <div class="mt-4 px-2 flex justify-between items-end font-sans">
+                            <p class="text-sm italic opacity-80 font-serif">未知空域的意外收获</p>
+                            <span class="text-[10px] tracking-widest opacity-50 uppercase">LOG 05</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 6 -->
+                <div class="relative group md:mt-48">
+                    <div class="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-125 -z-10 group-hover:bg-white/10 transition-all duration-700"></div>
+                    <div class="p-3 md:p-5 bg-white/5 border border-white/20 rounded-xl shadow-2xl rotate-[-3deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-500 backdrop-blur-sm">
+                        <div class="rounded-lg overflow-hidden border border-white/10 relative">
+                            <img src="pictures/B18014F83AD8777B305ED6582E09231C.png" alt="Leisure Memory 6" class="w-full aspect-[4/3] object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700">
+                        </div>
+                        <div class="mt-4 px-2 flex justify-between items-end font-sans">
+                            <p class="text-sm italic opacity-80 font-serif">梦开始的地方</p>
+                            <span class="text-[10px] tracking-widest opacity-50 uppercase">LOG 06</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 7 -->
+                <div class="relative group col-span-1 md:col-span-2 md:w-1/2 md:mx-auto mt-8 md:-mt-16">
+                    <div class="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-125 -z-10 group-hover:bg-white/10 transition-all duration-700"></div>
+                    <div class="p-3 md:p-5 bg-white/5 border border-white/20 rounded-xl shadow-2xl rotate-[1deg] hover:rotate-0 hover:scale-[1.02] transition-all duration-500 backdrop-blur-sm">
+                        <div class="rounded-lg overflow-hidden border border-white/10 relative">
+                            <img src="pictures/E77BAFC9F25E80A8E17CEDCD9B93D740.jpg" alt="Leisure Memory 7" style="aspect-ratio: 10/9;" class="w-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700">
+                        </div>
+                        <div class="mt-4 px-2 flex justify-between items-start font-sans gap-4">
+                            <p class="text-sm italic opacity-80 font-serif leading-relaxed">有整天的大好时光在我们面前，有整个世界等着我们去狩猎。</p>
+                            <span class="text-[10px] tracking-widest opacity-50 uppercase whitespace-nowrap mt-1">LOG 07</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION: The Hangar (Blueprint / Skills) -->
+        <section id="hangar" class="py-32 relative min-h-screen flex flex-col justify-center">
+            <h2 class="font-display text-4xl text-center mb-16 opacity-50 tracking-widest">IV. 机库蓝图 <span class="block text-sm font-sans mt-4 opacity-70">THE HANGAR</span></h2>
+            
+            <div class="w-full max-w-5xl mx-auto px-6">
+                <!-- Blueprint Design -->
+                <div class="blueprint-bg border border-[#60a5fa]/30 bg-[#1e3a8a]/20 p-8 md:p-16 rounded-2xl relative overflow-hidden backdrop-blur-sm">
+                    <div class="absolute inset-0 pattern-grid pointer-events-none"></div>
+                    
+                    <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 font-sans">
+                        <!-- Panel 1 -->
+                        <div>
+                            <h4 class="font-bold border-b border-[#60a5fa]/50 pb-2 mb-6 uppercase text-sm tracking-widest text-[#93c5fd] flex justify-between">
+                                <span>Engine</span> <span class="opacity-50">#01</span>
+                            </h4>
+                            <ul class="space-y-4 text-sm tracking-wider uppercase text-blue-100/80">
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Python / Django</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> SQL / Vector DB</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Back-End Arch</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Panel 2 -->
+                        <div>
+                            <h4 class="font-bold border-b border-[#60a5fa]/50 pb-2 mb-6 uppercase text-sm tracking-widest text-[#93c5fd] flex justify-between">
+                                <span>Avionics</span> <span class="opacity-50">#02</span>
+                            </h4>
+                            <ul class="space-y-4 text-sm tracking-wider uppercase text-blue-100/80">
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> React.js</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Tailwind CSS</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> UI / Interactive</li>
+                            </ul>
+                        </div>
+
+                        <!-- Panel 3 -->
+                        <div>
+                            <h4 class="font-bold border-b border-[#60a5fa]/50 pb-2 mb-6 uppercase text-sm tracking-widest text-[#93c5fd] flex justify-between">
+                                <span>Navigation</span> <span class="opacity-50">#03</span>
+                            </h4>
+                            <ul class="space-y-4 text-sm tracking-wider uppercase text-blue-100/80">
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Node.js</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Data Mining</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Quant Models</li>
+                            </ul>
+                        </div>
+
+                        <!-- Panel 4 -->
+                        <div>
+                            <h4 class="font-bold border-b border-[#60a5fa]/50 pb-2 mb-6 uppercase text-sm tracking-widest text-[#93c5fd] flex justify-between">
+                                <span>Tools</span> <span class="opacity-50">#04</span>
+                            </h4>
+                            <ul class="space-y-4 text-sm tracking-wider uppercase text-blue-100/80">
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Git / DevOps</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Cloud (AWS/Azure)</li>
+                                <li class="flex items-center gap-2"><div class="h-[1px] w-4 bg-[#60a5fa]/50"></div> Linux Sys</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Landing (Contact & Footer) -->
+        <section id="landing" class="min-h-screen relative flex items-center justify-center pt-20 pb-32">
+            <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-earth)] via-transparent to-transparent opacity-80 z-0"></div>
+            
+            <div class="relative z-10 text-center max-w-2xl px-6">
+                <div class="font-sans text-xs tracking-widest uppercase opacity-60 mb-6">Final Approach</div>
+                <h2 class="text-5xl md:text-6xl font-display font-bold mb-8 tracking-wider">着陆，与新的启航</h2>
+                <p class="font-serif italic text-lg opacity-80 mb-16 px-8">
+                    “在这片孤独的星空下，我们的每一次起飞，都是为了与远方的灵魂在某处降落、相遇。这里是我的频段，等待你的信号。”
+                </p>
+                
+                <div class="flex flex-wrap gap-6 justify-center">
+                    <a href="https://github.com/ianchiou28" target="_blank" class="px-8 py-4 border border-white/30 rounded-full hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-sans uppercase tracking-widest text-xs flex items-center gap-3 relative z-20 group">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.67-.3-5.46-1.335-5.46-5.925 0-1.11.38-2.71-.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 0z"/></svg>
+                        GitHub Signal
+                    </a>
+                    <a href="mailto:cfeng20261@gmail.com" class="px-8 py-4 border border-white/30 rounded-full hover:bg-white hover:text-black hover:border-white transition-all duration-300 font-sans uppercase tracking-widest text-xs flex items-center gap-3 relative z-20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        Radio Request
+                    </a>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-8 left-0 w-full text-center z-20 opacity-30 hover:opacity-100 transition-opacity duration-700">
+                <p class="mb-4 tracking-widest text-[#a3b8cc] font-serif italic text-xs">What is the Answer to the Ultimate Question of Life, the Universe, and Everything?</p>
+                <div class="flex justify-center gap-4">
+                    <input type="text" id="ultimate-answer" placeholder="?" class="bg-transparent border-b border-[#a3b8cc]/50 text-center text-[#a3b8cc] focus:outline-none w-16" />
+                    <button id="submit-answer" class="text-xs px-4 py-1 border border-[#a3b8cc]/50 rounded hover:bg-white hover:text-black transition-colors">Submit</button>
+                </div>
+            </div>
+
+            <div class="absolute bottom-2 w-full text-center font-sans text-[10px] tracking-[0.2em] opacity-40 uppercase z-10 pointer-events-none">
+                &copy; 2026 Ian Chiou. Nanjing University.
+            </div>
+        </section>
+    </div>
+
+    <!-- Easter Egg: Game Modal -->
+    <div id="flight-game-modal" class="fixed inset-0 z-[10000] hidden bg-black/95 flex-col items-center justify-center font-sans">
+        <h2 class="text-white text-3xl font-display mb-8 tracking-widest mt-10">NIGHT FLIGHT : THE GAME</h2>
+        <p class="text-gray-400 mb-6 text-sm tracking-widest uppercase">Click or Press SPACE to Ascend</p>
+        <canvas id="gameCanvas" width="800" height="400" class="border border-white/20 bg-gray-900 rounded-xl shadow-2xl cursor-pointer max-w-full"></canvas>
+        <p id="game-score-display" class="text-white mt-8 text-2xl tracking-widest">SCORE: 0</p>
+        <button id="close-game-btn" class="mt-8 px-8 py-3 border border-white/20 text-white hover:bg-white hover:text-black transition-colors rounded tracking-widest text-sm uppercase">Return to the Skies</button>
+    </div>
+
+    <!-- Easter Egg: 1-Up Reward -->
+    <div id="reward-modal" class="fixed inset-0 z-[10000] hidden bg-white/10 backdrop-blur-md flex-col items-center justify-center transition-opacity duration-1000 opacity-0">
+        <div class="text-center transform scale-90 transition-transform duration-1000" id="reward-content">
+            <h2 class="text-5xl font-display text-white mb-8 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] tracking-widest">1UP! EXTRA LIFE ACQUIRED</h2>
+            <img src="pictures/1-up-powerup.png" alt="1-Up" class="w-48 h-48 mx-auto object-contain drop-shadow-[0_0_20px_rgba(0,255,0,0.6)] animate-bounce" />
+            <p class="text-white mt-8 font-serif italic text-lg opacity-80">"Ready Player One. The OASIS awaits."</p>
+            <button id="close-reward-btn" class="mt-12 px-8 py-3 border border-white/30 text-white hover:bg-white hover:text-black transition-colors rounded tracking-widest text-sm uppercase">Accept Reward</button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

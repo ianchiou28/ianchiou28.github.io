@@ -1,0 +1,430 @@
+// Wait for DOM
+document.addEventListener("DOMContentLoaded", () => {
+    // Register GSAP plugins
+    gsap.registerPlugin(ScrollTrigger);
+
+    // 1. Generate Stars
+    const starsContainer = document.getElementById('stars');
+    if (starsContainer) {
+        for(let i=0; i<150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = Math.random() * 2 + 'px';
+            star.style.height = star.style.width;
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.top = Math.random() * 100 + 'vh';
+            star.style.animationDuration = (Math.random() * 3 + 1) + 's';
+            starsContainer.appendChild(star);
+        }
+    }
+
+    // 2. Altimeter, Heading & Smooth Background
+    const altimeter = document.getElementById('altimeter');
+    const heading = document.getElementById('heading');
+    const skyBg = document.getElementById('sky-bg');
+
+    // Text updates
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        const maxScroll = document.body.scrollHeight - window.innerHeight;
+        const scrollPercent = maxScroll > 0 ? scrollY / maxScroll : 0;
+        
+        const alt = Math.floor(scrollPercent * 35000);
+        if (altimeter) altimeter.innerText = `ALT: ${alt}FT`;
+
+        if (heading) {
+            if (scrollPercent < 0.3) heading.innerText = `HDG: W`;
+            else if (scrollPercent < 0.7) heading.innerText = `HDG: SW`;
+            else heading.innerText = `HDG: S`;
+        }
+    });
+
+    // Smooth background color interpolation using GSAP
+    if (skyBg) {
+        const skyTimeline = gsap.timeline({
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1.5 // Adds a slight smoothing lag to color change
+            }
+        });
+
+        skyTimeline
+            // Projects: Deep night shifting to dark cyan/blue
+            .to(skyBg, { backgroundColor: "#1e3a5f", duration: 1 })
+            // Competitions: Mystical purple / Northern lights feel
+            .to(skyBg, { backgroundColor: "#2b1a3a", duration: 1 })
+            // Travel Journal: Slightly warmer, nostalgic
+            .to(skyBg, { backgroundColor: "#3a2522", duration: 1 })
+            // Hangar & Landing: Early dawn / Earth atmosphere
+            .to(skyBg, { backgroundColor: "#1a1614", duration: 1 });
+    }
+
+    // 3. Airplane Animations
+    
+    // Constant floating movement simulating air flow
+    // IMPORTANT: Animate ONLY the svg, so it does not conflict with container Y movement
+    gsap.to("#plane-container svg", {
+        y: "-=15",
+        duration: 2,
+        yoyo: true,
+        repeat: -1,
+        ease: "sine.inOut"
+    });
+
+    // Master Flight Path (Fly steadily from left to right as scrolling down)
+    const flightPath = gsap.timeline({
+        scrollTrigger: {
+            trigger: "body",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 1.5 // Added a bit more scrub for smoother non-teleporting reaction
+        }
+    });
+
+    flightPath
+        // Takeoff
+        .fromTo("#plane-container", 
+            { x: '-20vw', y: '20vh', rotation: -15 }, 
+            { x: '5vw', y: '0vh', rotation: 0, duration: 0.1, ease: "power2.out" }
+        )
+        // Uniform slow flight towards the right
+        .to("#plane-container", {
+            x: '50vw', // Move towards the middle-right instead of running off-screen
+            duration: 0.8,
+            ease: "none" // 匀速
+        })
+        // Landing (descend and fly forward)
+        .to("#plane-container", {
+            x: '80vw', y: '60vh', rotation: 15,
+            scale: 0.8, // Slightly smaller as it goes further away
+            duration: 0.1,
+            ease: "power2.inOut" // Smooth landing curve
+        });
+
+    // Waypoint Animations (Projects)
+    gsap.utils.toArray('.waypoint').forEach((waypoint, i) => {
+        gsap.from(waypoint, {
+            opacity: 0,
+            y: 100,
+            duration: 1,
+            scrollTrigger: {
+                trigger: waypoint,
+                start: "top 80%",
+                end: "top 50%",
+                scrub: 1
+            }
+        });
+        
+        // Plane tilt when passing waypoints
+        ScrollTrigger.create({
+            trigger: waypoint,
+            start: "top 60%",
+            end: "bottom 40%",
+            onEnter: () => gsap.to("#plane-body", {rotation: 10, duration: 1, transformOrigin: "center"}),
+            onLeave: () => gsap.to("#plane-body", {rotation: 0, duration: 1, transformOrigin: "center"}),
+            onEnterBack: () => gsap.to("#plane-body", {rotation: -10, duration: 1, transformOrigin: "center"}),
+            onLeaveBack: () => gsap.to("#plane-body", {rotation: 0, duration: 1, transformOrigin: "center"}),
+        });
+    });
+
+    // Turbulence Animations (Competitions)
+    gsap.utils.toArray('.award-cloud').forEach(cloud => {
+        gsap.from(cloud, {
+            scale: 0.5,
+            opacity: 0,
+            filter: "blur(10px)",
+            scrollTrigger: {
+                trigger: cloud,
+                start: "top 80%",
+                end: "top 50%",
+                scrub: 1
+            }
+        });
+
+        // Simulate turbulence
+        ScrollTrigger.create({
+            trigger: cloud,
+            start: "top 60%",
+            end: "bottom 40%",
+            onEnter: () => {
+                gsap.to("#plane-body", {
+                    y: "+=20", x: "+=5", rotation: "random(-5, 5)",
+                    duration: 0.1, yoyo: true, repeat: 10 // shake effect
+                });
+            },
+            onEnterBack: () => {
+                gsap.to("#plane-body", {
+                    y: "+=20", x: "+=5", rotation: "random(-5, 5)",
+                    duration: 0.1, yoyo: true, repeat: 10
+                });
+            }
+        });
+    });
+
+    // Fade out stars during landing/dawn
+    gsap.to("#stars", {
+        opacity: 0,
+        scrollTrigger: {
+            trigger: "#landing",
+            start: "top bottom",
+            end: "center center",
+            scrub: true
+        }
+    });
+
+// --- Easter Egg 1: Flight Mini Game ---
+const planeClickZone = document.getElementById('plane-container');
+const gameModal = document.getElementById('flight-game-modal');
+const gameCanvas = document.getElementById('gameCanvas');
+const scoreDisplay = document.getElementById('game-score-display');
+const closeGameBtn = document.getElementById('close-game-btn');
+let gameCtx, gameAnimationId;
+let planeY = 200, planeVelocity = 0, gravity = 0.5, jump = -8;
+let pipes = [], frameCount = 0, gameScore = 0;
+let gameState = 'start'; // 'start', 'playing', 'gameover'
+
+if (planeClickZone && gameModal && gameCanvas) {
+    gameCtx = gameCanvas.getContext('2d');
+    
+    planeClickZone.addEventListener('click', () => {
+        gameModal.classList.remove('hidden');
+        gameModal.classList.add('flex');
+        cancelAnimationFrame(gameAnimationId);
+        gameState = 'start';
+        drawStartScreen();
+    });
+
+    closeGameBtn.addEventListener('click', () => {
+        gameModal.classList.add('hidden');
+        gameModal.classList.remove('flex');
+        cancelAnimationFrame(gameAnimationId);
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !gameModal.classList.contains('hidden')) {
+            e.preventDefault();
+            if (gameState === 'start' || gameState === 'gameover') {
+                startGame();
+            } else if (gameState === 'playing') {
+                planeVelocity = jump;
+            }
+        }
+    });
+    
+    gameCanvas.addEventListener('mousedown', () => {
+        if (gameState === 'start' || gameState === 'gameover') {
+            startGame();
+        } else if (gameState === 'playing') {
+            planeVelocity = jump;
+        }
+    });
+
+    function drawStartScreen() {
+        resetGame();
+        gameCtx.fillStyle = '#1a1a2e';
+        gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+        drawGamePlane(100, 200);
+        gameCtx.fillStyle = 'rgba(0,0,0,0.5)';
+        gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+        gameCtx.fillStyle = 'white';
+        gameCtx.font = '30px monospace';
+        gameCtx.fillText('READY TO FLY?', gameCanvas.width / 2 - 110, gameCanvas.height / 2 - 20);
+        gameCtx.font = '20px monospace';
+        gameCtx.fillText('Click canvas or press SPACE to Start', gameCanvas.width / 2 - 200, gameCanvas.height / 2 + 30);
+    }
+
+    function startGame() {
+        resetGame();
+        gameState = 'playing';
+        planeVelocity = jump;
+        updateGame();
+    }
+
+    function resetGame() {
+        planeY = 200;
+        planeVelocity = 0;
+        pipes = [];
+        frameCount = 0;
+        gameScore = 0;
+        if(scoreDisplay) scoreDisplay.innerText = `SCORE: ${gameScore}`;
+    }
+
+    function drawGamePlane(x, y) {
+        gameCtx.save();
+        gameCtx.translate(x, y);
+        gameCtx.rotate(Math.min(Math.max(planeVelocity * 0.05, -0.5), 0.5));
+        
+        // Simple plane shape
+        gameCtx.fillStyle = 'white';
+        gameCtx.beginPath();
+        gameCtx.moveTo(20, 0); // nose
+        gameCtx.lineTo(-15, -10); // top tail
+        gameCtx.lineTo(-15, 10); // bottom tail
+        gameCtx.closePath();
+        gameCtx.fill();
+        
+        // Wing
+        gameCtx.fillStyle = '#a3b8cc';
+        gameCtx.beginPath();
+        gameCtx.moveTo(-5, 0);
+        gameCtx.lineTo(-15, -20);
+        gameCtx.lineTo(-5, -20);
+        gameCtx.lineTo(5, 0);
+        gameCtx.closePath();
+        gameCtx.fill();
+
+        gameCtx.restore();
+    }
+
+    function updateGame() {
+        if (gameState !== 'playing') return;
+
+        // Physics
+        planeVelocity += gravity;
+        planeY += planeVelocity;
+
+        // Clear canvas
+        gameCtx.fillStyle = '#1a1a2e';
+        gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+        // Spawn pipes
+        if (frameCount % 90 === 0) {
+            let gapPosition = Math.random() * 200 + 50; // Random gap starting y
+            pipes.push({ x: gameCanvas.width, topHeight: gapPosition - 60, bottomY: gapPosition + 80 });
+        }
+
+        // Update & Draw pipes
+        gameCtx.fillStyle = '#4a5568';
+        for (let i = pipes.length - 1; i >= 0; i--) {
+            let p = pipes[i];
+            p.x -= 3; // speed
+            
+            // Draw top pipe
+            gameCtx.fillRect(p.x, 0, 40, p.topHeight);
+            // Draw bottom pipe
+            gameCtx.fillRect(p.x, p.bottomY, 40, gameCanvas.height - p.bottomY);
+
+            // Collision detection
+            let planeRect = { x: 100 - 15, y: planeY - 10, w: 30, h: 20 };
+            let hitTop = planeRect.x < p.x + 40 && planeRect.x + planeRect.w > p.x && planeRect.y < p.topHeight;
+            let hitBottom = planeRect.x < p.x + 40 && planeRect.x + planeRect.w > p.x && planeRect.y + planeRect.h > p.bottomY;
+
+            if (hitTop || hitBottom) {
+                gameState = 'gameover'; // Game Over
+            }
+
+            // Score up
+            if (p.x === 98) {
+                gameScore++;
+                if(scoreDisplay) scoreDisplay.innerText = `SCORE: ${gameScore}`;
+            }
+
+            // Remove off-screen pipes
+            if (p.x + 40 < 0) {
+                pipes.splice(i, 1);
+            }
+        }
+
+        // Draw Plane (fixed x = 100)
+        drawGamePlane(100, planeY);
+
+        // Floor / Ceiling collision
+        if (planeY > gameCanvas.height || planeY < 0) {
+            gameState = 'gameover';
+        }
+
+        if (gameState === 'playing') {
+            frameCount++;
+            gameAnimationId = requestAnimationFrame(updateGame);
+        } else {
+            // Game Over Text
+            gameCtx.fillStyle = 'rgba(0,0,0,0.5)';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+            gameCtx.fillStyle = 'red';
+            gameCtx.font = '40px monospace';
+            gameCtx.fillText('CRASHED', gameCanvas.width / 2 - 80, gameCanvas.height / 2);
+            gameCtx.fillStyle = 'white';
+            gameCtx.font = '20px monospace';
+            gameCtx.fillText('Click canvas or press SPACE to restart', gameCanvas.width / 2 - 200, gameCanvas.height / 2 + 40);
+        }
+    }
+}
+
+// --- Easter Egg 2: Ultimate Question (42) ---
+const answerInput = document.getElementById('ultimate-answer');
+const submitBtn = document.getElementById('submit-answer');
+const rewardModal = document.getElementById('reward-modal');
+const closeRewardBtn = document.getElementById('close-reward-btn');
+
+if (answerInput && submitBtn && rewardModal) {
+    submitBtn.addEventListener('click', checkAnswer);
+    answerInput.addEventListener('keypress', (e) => {
+         if(e.key === 'Enter') checkAnswer();
+    });
+
+    function checkAnswer() {
+        if (answerInput.value.trim() === '42') {
+            triggerConfetti();
+            rewardModal.classList.remove('hidden');
+            rewardModal.classList.add('flex');
+            
+            // trigger fade inside
+            setTimeout(() => {
+                rewardModal.classList.remove('opacity-0');
+                rewardModal.classList.add('opacity-100');
+                document.getElementById('reward-content').classList.remove('scale-90');
+                document.getElementById('reward-content').classList.add('scale-100');
+            }, 50);
+            
+            answerInput.value = ''; // clear
+        } else {
+            // Wrong answer shake
+            answerInput.classList.add('translate-x-2');
+            answerInput.style.borderColor = 'red';
+            answerInput.style.color = 'red';
+            setTimeout(() => {
+                answerInput.classList.remove('translate-x-2');
+                answerInput.style.borderColor = '';
+                answerInput.style.color = '';
+            }, 300);
+        }
+    }
+
+    if (closeRewardBtn) {
+        closeRewardBtn.addEventListener('click', () => {
+             rewardModal.classList.remove('opacity-100');
+             rewardModal.classList.add('opacity-0');
+             setTimeout(() => {
+                 rewardModal.classList.add('hidden');
+                 rewardModal.classList.remove('flex');
+                 document.getElementById('reward-content').classList.add('scale-90');
+                 document.getElementById('reward-content').classList.remove('scale-100');
+             }, 1000);
+        });
+    }
+}
+
+function triggerConfetti() {
+    // Simple DOM confetti
+    for(let i=0; i<50; i++) {
+        let conf = document.createElement('div');
+        conf.className = 'absolute z-[10001] w-3 h-3 rounded-full';
+        conf.style.backgroundColor = ['#ff0', '#0f0', '#00f', '#f00', '#f0f'][Math.floor(Math.random()*5)];
+        conf.style.left = Math.random() * 100 + 'vw';
+        conf.style.top = '-10vh';
+        document.body.appendChild(conf);
+        
+        gsap.to(conf, {
+            y: '110vh',
+            x: `+=${Math.random() * 200 - 100}`,
+            rotation: Math.random() * 720,
+            duration: Math.random() * 2 + 2,
+            ease: "power1.out",
+            onComplete: () => conf.remove()
+        });
+    }
+}
+
+});

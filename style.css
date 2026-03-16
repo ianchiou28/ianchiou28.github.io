@@ -1,0 +1,74 @@
+:root {
+    --color-night: #0a0f1d;
+    --color-dawn: #4a3b52;
+    --color-earth: #8b4513;
+}
+
+body {
+    background-color: var(--color-night);
+    color: #e8e6e3;
+    font-family: 'Lora', serif;
+    scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--color-night);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+}
+
+/* Typography Enhancements */
+.font-display {
+    font-family: 'Playfair Display', serif;
+}
+.font-serif {
+    font-family: 'Lora', serif;
+}
+.font-sans {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+#sky-bg {
+    background: linear-gradient(to bottom, var(--color-night), var(--color-night));
+    transition: background 0.5s ease;
+}
+
+/* Propeller animation */
+#propeller-blur, #prop-blade-1, #prop-blade-2 {
+    animation: spin 0.05s linear infinite;
+    transform-origin: 185px 45px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg) scaleY(1); }
+    to { transform: rotate(360deg) scaleY(-1); }
+}
+
+/* Stars generation via JS */
+.star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle alternate infinite;
+    box-shadow: 0 0 4px rgba(255,255,255,0.8);
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.1; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Grid overlay for Blueprint */
+.pattern-grid {
+    background-image: 
+        linear-gradient(rgba(96, 165, 250, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(96, 165, 250, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: center center;
+}
