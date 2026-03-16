@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-[#0a0f1d] text-[#e8e6e3] overflow-x-hidden font-serif selection:bg-white/30">
+<body class="bg-[#0a0f1d] text-[#e8e6e3] overflow-x-hidden font-serif selection:bg-white/30 overflow-hidden">
 
     <!-- HUD / Navigation -->
     <nav class="fixed top-0 left-0 w-full z-[1000] p-6 flex justify-between items-center pointer-events-none">
@@ -50,7 +50,7 @@
         <!-- Lightning layer -->
         <div id="lightning-container" class="absolute inset-0 pointer-events-none z-[50]"></div>
         <!-- Rain Audio -->
-        <audio id="rain-audio" loop preload="auto" autoplay>
+        <audio id="rain-audio" loop preload="auto">
             <source src="https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg" type="audio/ogg">
         </audio>
     </div>
@@ -102,9 +102,9 @@
                 <h2 class="text-xl md:text-2xl opacity-80 mb-12 font-serif italic text-white/80">
                     “我已学会了流浪，也学会了在数字世界的大地上飞行。”
                 </h2>
-                <div class="uppercase tracking-[0.3em] text-xs opacity-60 animate-pulse border border-white/20 inline-block px-6 py-3 rounded-full relative z-20 hover:bg-white/10 transition-colors">
-                    向下滚动，启动引擎 / Scroll to Start
-                </div>
+                <button id="engine-start-btn" class="uppercase tracking-[0.3em] text-xs opacity-80 animate-pulse border border-white/40 inline-block px-8 py-4 rounded-full relative z-20 hover:bg-white hover:text-black hover:scale-105 transition-all duration-500 cursor-pointer">
+                    点击启动引擎 / Click to Start Engine
+                </button>
             </div>
         </section>
 

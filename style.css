@@ -41,8 +41,13 @@ body {
 
 /* Propeller animation */
 #propeller-blur, #prop-blade-1, #prop-blade-2 {
-    animation: spin 0.05s linear infinite;
+    /* Initially paused, starts spinning fast when JS triggers it */
     transform-origin: 185px 45px;
+}
+
+/* We'll use JS to add an active spin class after engine starts */
+.spinning-prop {
+    animation: spin 0.05s linear infinite !important;
 }
 
 @keyframes spin {

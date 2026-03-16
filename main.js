@@ -277,20 +277,44 @@ document.addEventListener("DOMContentLoaded", () => {
     // Global continuous low volume ambient rain sound
     if (rainAudio) {
         rainAudio.volume = 0.45;
-        // Attempt to play on load if browser allows
-        setTimeout(() => {
-            let p = rainAudio.play();
-            if (p !== undefined) {
-                p.catch(() => {
-                    // Autoplay blocked, wait for first click
-                    const clickToPlay = () => {
-                        rainAudio.play();
-                        document.body.removeEventListener('click', clickToPlay);
-                    };
-                    document.body.addEventListener('click', clickToPlay);
-                });
+    }
+
+    // Engine Start & Audio Unlock logic
+    const engineStartBtn = document.getElementById('engine-start-btn');
+    if (engineStartBtn) {
+        engineStartBtn.addEventListener('click', () => {
+            // Unlock audio on intentional click
+            if (rainAudio) {
+                rainAudio.play().catch(e => console.log(e));
             }
-        }, 500);
+            // Animate button away and allow scrolling
+            gsap.to(engineStartBtn, {
+                scale: 1.5, opacity: 0, duration: 0.8, ease: "power2.out",
+                onComplete: () => {
+                    engineStartBtn.style.display = 'none';
+                    // Allow scroll
+                    document.body.classList.remove('overflow-hidden');
+                    // Add a hint text replacing the button
+                    const hintSpan = document.createElement('div');
+                    hintSpan.className = 'uppercase tracking-[0.3em] text-xs opacity-50 mt-4';
+                    hintSpan.innerText = '向下滚动 / Scroll to Fly';
+                    engineStartBtn.parentNode.appendChild(hintSpan);
+                }
+            });
+            // Propeller spin up animation
+            gsap.to(["#prop-blade-1", "#prop-blade-2", "#propeller-blur"], {
+                duration: 2, 
+                ease: "power2.in", 
+                rotation: 3600, 
+                transformOrigin: "185px 45px",
+                onComplete: () => {
+                    // Hand over to CSS infinite animation after wind-up
+                    document.getElementById('prop-blade-1').classList.add('spinning-prop');
+                    document.getElementById('prop-blade-2').classList.add('spinning-prop');
+                    document.getElementById('propeller-blur').classList.add('spinning-prop');
+                }
+            });
+        });
     }
 
     ScrollTrigger.create({
