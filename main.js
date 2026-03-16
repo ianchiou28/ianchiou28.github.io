@@ -1,6 +1,7 @@
 // YouTube Background Music Setup
 let ytPlayer;
 let ytPlayerReady = false;
+let playRequested = false;
 const bgMusicState = { volume: 50 };
 
 // Load the IFrame Player API code asynchronously
@@ -11,12 +12,14 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onYouTubeIframeAPIReady = function() {
     ytPlayer = new YT.Player('youtube-audio', {
-        height: '1',
-        width: '1',
+        height: '10',
+        width: '10',
         videoId: 'LcwIMiaW-Tk',
         playerVars: {
             'autoplay': 0,
             'controls': 0,
+            'disablekb': 1,
+            'fs': 0,
             'loop': 1,
             'playlist': 'LcwIMiaW-Tk',
             'playsinline': 1
@@ -26,6 +29,17 @@ window.onYouTubeIframeAPIReady = function() {
                 ytPlayerReady = true;
                 event.target.setVolume(bgMusicState.volume);
                 event.target.unMute();
+                
+                // If user already clicked before YT was ready, play now
+                if (playRequested) {
+                    event.target.playVideo();
+                }
+            },
+            'onStateChange': (event) => {
+                // If the video somehow pauses or fails to start and playback was requested, keep retrying or forcing volume
+                if (playRequested && event.data !== YT.PlayerState.PLAYING && event.data !== YT.PlayerState.BUFFERING) {
+                    event.target.playVideo();
+                }
             }
         }
     });
@@ -331,11 +345,18 @@ document.addEventListener("DOMContentLoaded", () => {
             if (terminalStarted) return;
             terminalStarted = true;
 
+            // Mark play intent
+            playRequested = true;
+
             // Unlock audio on intentional click
-            if (ytPlayerReady && ytPlayer && ytPlayer.playVideo) {
-                ytPlayer.unMute();
-                ytPlayer.setVolume(50);
-                ytPlayer.playVideo();
+            if (ytPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                try {
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(50);
+                    ytPlayer.playVideo();
+                } catch (e) {
+                    console.error("YT Play Error", e);
+                }
             }
 
             // Hide prompts & show cursor
