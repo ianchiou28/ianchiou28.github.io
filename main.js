@@ -2,6 +2,7 @@
 let ytPlayer;
 let ytPlayerReady = false;
 let playRequested = false;
+let hasStartedPlaying = false;
 const bgMusicState = { volume: 50 };
 
 // Load the IFrame Player API code asynchronously
@@ -12,8 +13,8 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onYouTubeIframeAPIReady = function() {
     ytPlayer = new YT.Player('youtube-audio', {
-        height: '10',
-        width: '10',
+        height: '256',
+        width: '256',
         videoId: 'LcwIMiaW-Tk',
         playerVars: {
             'autoplay': 0,
@@ -28,22 +29,57 @@ window.onYouTubeIframeAPIReady = function() {
             'onReady': (event) => {
                 ytPlayerReady = true;
                 event.target.setVolume(bgMusicState.volume);
-                event.target.unMute();
                 
                 // If user already clicked before YT was ready, play now
-                if (playRequested) {
-                    event.target.playVideo();
+                if (playRequested && !hasStartedPlaying) {
+                    forcePlayMusic(event.target);
                 }
             },
             'onStateChange': (event) => {
-                // If the video somehow pauses or fails to start and playback was requested, keep retrying or forcing volume
-                if (playRequested && event.data !== YT.PlayerState.PLAYING && event.data !== YT.PlayerState.BUFFERING) {
+                if (event.data === YT.PlayerState.PLAYING) {
+                    hasStartedPlaying = true;
+                }
+                // If play was requested but video stopped/paused/unstarted, retry
+                if (playRequested && !hasStartedPlaying &&
+                    event.data !== YT.PlayerState.PLAYING &&
+                    event.data !== YT.PlayerState.BUFFERING) {
                     event.target.playVideo();
                 }
             }
         }
     });
 };
+
+function forcePlayMusic(player) {
+    if (!player || typeof player.playVideo !== 'function') return;
+    try {
+        player.unMute();
+        player.setVolume(50);
+        player.playVideo();
+    } catch (e) {
+        console.error("YT Play Error", e);
+    }
+}
+
+// Function to handle global first interaction to unlock audio
+function handleFirstInteraction() {
+    if (hasStartedPlaying) return;
+    playRequested = true;
+    if (ytPlayerReady && ytPlayer) {
+        forcePlayMusic(ytPlayer);
+    } else {
+        // Retry loop if YT is still loading when user clicks
+        let retries = 0;
+        const retryInterval = setInterval(() => {
+            if (ytPlayerReady && ytPlayer && !hasStartedPlaying) {
+                forcePlayMusic(ytPlayer);
+                clearInterval(retryInterval);
+            }
+            retries++;
+            if (retries > 50 || hasStartedPlaying) clearInterval(retryInterval); // Stop trying after 5 seconds
+        }, 100);
+    }
+}
 
 function setBgMusicVolume(targetVol, duration) {
     if (!ytPlayerReady || !ytPlayer || !ytPlayer.setVolume) return;
@@ -346,18 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
             terminalStarted = true;
 
             // Mark play intent
-            playRequested = true;
-
-            // Unlock audio on intentional click
-            if (ytPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
-                try {
-                    ytPlayer.unMute();
-                    ytPlayer.setVolume(50);
-                    ytPlayer.playVideo();
-                } catch (e) {
-                    console.error("YT Play Error", e);
-                }
-            }
+            handleFirstInteraction();
 
             // Hide prompts & show cursor
             if (terminalPrompt) gsap.to(terminalPrompt, {opacity: 0, duration: 0.3});
