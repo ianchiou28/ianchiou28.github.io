@@ -28,6 +28,9 @@
     <!-- GSAP & ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -49,10 +52,10 @@
         <div id="clouds-container" class="absolute inset-0 opacity-0"></div>
         <!-- Lightning layer -->
         <div id="lightning-container" class="absolute inset-0 pointer-events-none z-[50]"></div>
-        <!-- Rain Audio -->
-        <audio id="rain-audio" loop preload="auto">
-            <source src="https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg" type="audio/ogg">
-        </audio>
+        <!-- Background Music -->
+        <div class="fixed opacity-0 pointer-events-none w-[1px] h-[1px] overflow-hidden -z-50">
+            <div id="youtube-audio"></div>
+        </div>
     </div>
 
     <!-- The Airplane (Vega Gull style biplane) -->

@@ -1,3 +1,40 @@
+// YouTube Background Music Setup
+let ytPlayer;
+let ytPlayerReady = false;
+const bgMusicState = { volume: 45 };
+
+window.onYouTubeIframeAPIReady = function() {
+    ytPlayer = new YT.Player('youtube-audio', {
+        height: '1',
+        width: '1',
+        videoId: 'LcwIMiaW-Tk',
+        playerVars: {
+            'autoplay': 0,
+            'controls': 0,
+            'loop': 1,
+            'playlist': 'LcwIMiaW-Tk',
+            'playsinline': 1
+        },
+        events: {
+            'onReady': (event) => {
+                ytPlayerReady = true;
+                event.target.setVolume(bgMusicState.volume);
+            }
+        }
+    });
+};
+
+function setBgMusicVolume(targetVol, duration) {
+    if (!ytPlayerReady || !ytPlayer || !ytPlayer.setVolume) return;
+    gsap.to(bgMusicState, {
+        volume: targetVol,
+        duration: duration,
+        onUpdate: () => {
+            ytPlayer.setVolume(Math.round(bgMusicState.volume));
+        }
+    });
+}
+
 // Wait for DOM
 document.addEventListener("DOMContentLoaded", () => {
     // Register GSAP plugins
@@ -274,16 +311,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Fade in/out clouds when in competitions section
-    const rainAudio = document.getElementById('rain-audio');
 
     // Engine Start & Audio Unlock logic
     const engineStartBtn = document.getElementById('engine-start-btn');
     if (engineStartBtn) {
         engineStartBtn.addEventListener('click', () => {
             // Unlock audio on intentional click
-            if (rainAudio) {
-                rainAudio.volume = 0.45; // Apply volume right before playing
-                rainAudio.play().catch(e => console.log(e));
+            if (ytPlayerReady && ytPlayer && ytPlayer.playVideo) {
+                ytPlayer.setVolume(45); // Apply volume right before playing
+                ytPlayer.playVideo();
             }
 
             // IMMEDIATELY unlock scroll so it feels responsive
@@ -335,19 +371,19 @@ document.addEventListener("DOMContentLoaded", () => {
         end: "bottom 30%",
         onEnter: () => {
             gsap.to("#clouds-container", { opacity: 1, duration: 1.5 });
-            if (rainAudio) gsap.to(rainAudio, { volume: 0.7, duration: 1.5 }); // louder in storm
+            setBgMusicVolume(70, 1.5); // louder in storm
         },
         onLeave: () => {
             gsap.to("#clouds-container", { opacity: 0, duration: 1.5 });
-            if (rainAudio) gsap.to(rainAudio, { volume: 0.45, duration: 1.5 }); // back to ambient
+            setBgMusicVolume(45, 1.5); // back to ambient
         },
         onEnterBack: () => {
             gsap.to("#clouds-container", { opacity: 1, duration: 1.5 });
-            if (rainAudio) gsap.to(rainAudio, { volume: 0.7, duration: 1.5 }); // louder in storm
+            setBgMusicVolume(70, 1.5); // louder in storm
         },
         onLeaveBack: () => {
             gsap.to("#clouds-container", { opacity: 0, duration: 1.5 });
-            if (rainAudio) gsap.to(rainAudio, { volume: 0.45, duration: 1.5 }); // back to ambient
+            setBgMusicVolume(45, 1.5); // back to ambient
         }
     });
 
