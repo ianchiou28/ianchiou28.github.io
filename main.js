@@ -126,6 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    const isMobile = window.innerWidth < 768;
+
     flightPath
         // Takeoff
         .fromTo("#plane-container", 
@@ -134,14 +136,14 @@ document.addEventListener("DOMContentLoaded", () => {
         )
         // Uniform slow flight towards the right
         .to("#plane-container", {
-            x: '40vw', // Move towards the middle
+            x: isMobile ? '70vw' : '40vw', // On mobile, stay on the right edge so it doesn't block text
             y: '5vh',
             duration: 0.7,
             ease: "none" // 匀速
         })
         // Landing (descend smoothly and stay visible)
         .to("#plane-container", {
-            x: '55vw', // Keep it nicely on right side, easily visible
+            x: isMobile ? '75vw' : '55vw', // Keep it nicely on right side, easily visible
             y: '25vh', // Gentle descent relative to center
             rotation: 8, // Slight nose down
             scale: 0.8, 
@@ -273,11 +275,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fade in/out clouds when in competitions section
     const rainAudio = document.getElementById('rain-audio');
-    
-    // Global continuous low volume ambient rain sound
-    if (rainAudio) {
-        rainAudio.volume = 0.45;
-    }
 
     // Engine Start & Audio Unlock logic
     const engineStartBtn = document.getElementById('engine-start-btn');
@@ -285,6 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
         engineStartBtn.addEventListener('click', () => {
             // Unlock audio on intentional click
             if (rainAudio) {
+                rainAudio.volume = 0.45; // Apply volume right before playing
                 rainAudio.play().catch(e => console.log(e));
             }
 
@@ -316,8 +314,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 duration: 2, 
                 ease: "power2.in", 
                 rotation: 3600, 
-                transformOrigin: "185px 45px",
+                transformOrigin: "180px 45px", // Use exact hub coordinates
                 onComplete: () => {
+                    // Remove GSAP inline rotation so CSS animation can perfectly take over
+                    gsap.set(["#prop-blade-1", "#prop-blade-2", "#propeller-blur"], { clearProps: "transform" });
+                    
                     // Hand over to CSS infinite animation after wind-up
                     document.getElementById('prop-blade-1').classList.add('spinning-prop');
                     document.getElementById('prop-blade-2').classList.add('spinning-prop');
