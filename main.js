@@ -379,19 +379,15 @@ document.addEventListener("DOMContentLoaded", () => {
         end: "bottom 30%",
         onEnter: () => {
             gsap.to("#clouds-container", { opacity: 1, duration: 1.5 });
-            setBgMusicVolume(70, 1.5); // louder in storm
         },
         onLeave: () => {
             gsap.to("#clouds-container", { opacity: 0, duration: 1.5 });
-            setBgMusicVolume(45, 1.5); // back to ambient
         },
         onEnterBack: () => {
             gsap.to("#clouds-container", { opacity: 1, duration: 1.5 });
-            setBgMusicVolume(70, 1.5); // louder in storm
         },
         onLeaveBack: () => {
             gsap.to("#clouds-container", { opacity: 0, duration: 1.5 });
-            setBgMusicVolume(45, 1.5); // back to ambient
         }
     });
 
