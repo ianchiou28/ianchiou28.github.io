@@ -39,22 +39,7 @@ body {
     transition: background 0.5s ease;
 }
 
-/* Propeller animation */
-#propeller-blur, #prop-blade-1, #prop-blade-2 {
-    /* Initially paused, starts spinning fast when JS triggers it */
-    transform-origin: 180px 45px;
-    transform-box: view-box;
-}
-
-/* We'll use JS to add an active spin class after engine starts */
-.spinning-prop {
-    animation: spin 0.05s linear infinite !important;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg) scaleY(1); }
-    to { transform: rotate(360deg) scaleY(-1); }
-}
+/* (Propeller animation is fully handled by GSAP in main.js, no CSS needed here) */
 
 /* Stars generation via JS */
 .star {

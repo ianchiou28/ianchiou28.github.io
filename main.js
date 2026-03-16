@@ -314,15 +314,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 duration: 2, 
                 ease: "power2.in", 
                 rotation: 3600, 
-                transformOrigin: "180px 45px", // Use exact hub coordinates
+                svgOrigin: "180 45", // Use GSAP's robust SVG absolute origin
                 onComplete: () => {
-                    // Remove GSAP inline rotation so CSS animation can perfectly take over
-                    gsap.set(["#prop-blade-1", "#prop-blade-2", "#propeller-blur"], { clearProps: "transform" });
-                    
-                    // Hand over to CSS infinite animation after wind-up
-                    document.getElementById('prop-blade-1').classList.add('spinning-prop');
-                    document.getElementById('prop-blade-2').classList.add('spinning-prop');
-                    document.getElementById('propeller-blur').classList.add('spinning-prop');
+                    // Seamlessly hand over to infinite GSAP animation
+                    gsap.to(["#prop-blade-1", "#prop-blade-2", "#propeller-blur"], {
+                        duration: 0.1,
+                        rotation: "+=360",
+                        ease: "none",
+                        repeat: -1,
+                        svgOrigin: "180 45"
+                    });
                 }
             });
         });
