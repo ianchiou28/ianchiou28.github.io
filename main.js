@@ -13,11 +13,12 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onYouTubeIframeAPIReady = function() {
     ytPlayer = new YT.Player('youtube-audio', {
-        height: '256',
-        width: '256',
+        height: '10',
+        width: '10',
         videoId: 'LcwIMiaW-Tk',
         playerVars: {
-            'autoplay': 0,
+            'autoplay': 1,   // Start playing immediately (muted) — browsers allow muted autoplay
+            'mute': 1,       // Muted so autoplay is allowed without user gesture
             'controls': 0,
             'disablekb': 1,
             'fs': 0,
@@ -29,56 +30,50 @@ window.onYouTubeIframeAPIReady = function() {
             'onReady': (event) => {
                 ytPlayerReady = true;
                 event.target.setVolume(bgMusicState.volume);
-                
-                // If user already clicked before YT was ready, play now
-                if (playRequested && !hasStartedPlaying) {
-                    forcePlayMusic(event.target);
+                // If user already clicked the terminal before player was ready, unmute now
+                if (playRequested) {
+                    event.target.unMute();
+                    hasStartedPlaying = true;
                 }
             },
             'onStateChange': (event) => {
-                if (event.data === YT.PlayerState.PLAYING) {
+                if (event.data === YT.PlayerState.PLAYING && playRequested) {
                     hasStartedPlaying = true;
                 }
-                // If play was requested but video stopped/paused/unstarted, retry
-                if (playRequested && !hasStartedPlaying &&
-                    event.data !== YT.PlayerState.PLAYING &&
-                    event.data !== YT.PlayerState.BUFFERING) {
-                    event.target.playVideo();
-                }
+            },
+            'onError': (event) => {
+                console.error('YouTube Player Error code:', event.data);
+                // 100=not found, 101/150=embedding not allowed
             }
         }
     });
 };
 
 function forcePlayMusic(player) {
-    if (!player || typeof player.playVideo !== 'function') return;
+    if (!player) return;
     try {
+        // Video is already playing muted via autoplay — just unmute
         player.unMute();
         player.setVolume(50);
-        player.playVideo();
+        hasStartedPlaying = true;
+        // Fallback: if autoplay was also blocked, force play now (user gesture context)
+        const state = typeof player.getPlayerState === 'function' ? player.getPlayerState() : -1;
+        if (state === -1 || state === 0 || state === 2 || state === 5) {
+            player.playVideo();
+        }
     } catch (e) {
         console.error("YT Play Error", e);
     }
 }
 
-// Function to handle global first interaction to unlock audio
+// Called on first user interaction (terminal click) to unmute the already-playing audio
 function handleFirstInteraction() {
     if (hasStartedPlaying) return;
     playRequested = true;
     if (ytPlayerReady && ytPlayer) {
         forcePlayMusic(ytPlayer);
-    } else {
-        // Retry loop if YT is still loading when user clicks
-        let retries = 0;
-        const retryInterval = setInterval(() => {
-            if (ytPlayerReady && ytPlayer && !hasStartedPlaying) {
-                forcePlayMusic(ytPlayer);
-                clearInterval(retryInterval);
-            }
-            retries++;
-            if (retries > 50 || hasStartedPlaying) clearInterval(retryInterval); // Stop trying after 5 seconds
-        }, 100);
     }
+    // If player not ready yet, onReady handler will unmute when it fires
 }
 
 function setBgMusicVolume(targetVol, duration) {
